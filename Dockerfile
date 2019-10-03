@@ -1,4 +1,4 @@
-FROM alpine/git:latest
+FROM alpine:latest
 
 ADD entrypoint.sh /entrypoint.sh
 
