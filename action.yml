@@ -1,0 +1,5 @@
+name: Merge Permission Check
+description: Uses supplied rules to validate whether destination branches can be merged from current branch
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
