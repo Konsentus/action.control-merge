@@ -1,41 +1,107 @@
 #!/bin/bash -l
 
-if [ -z "$GITHUB_HEAD_REF" ] || [ -z "$GITHUB_BASE_REF" ]; then
+if [ -z "${GITHUB_HEAD_REF}" ] || [ -z "${GITHUB_BASE_REF}" ]; then
     # expected env vars dont exist, cannot continue
-    echo "Either GITHUB_HEAD_REF or GITHUB_BASE_REF are not defined. Cannot continue"
+    echo "::set-output name=response::✘ Either GITHUB_HEAD_REF or GITHUB_BASE_REF are not defined. Cannot continue"
     exit 2
 fi
 
-SOURCE_BRANCH=$GITHUB_HEAD_REF
-TARGET_BRANCH=$GITHUB_BASE_REF
+# get position of value ($1) within an array ($2)
+# return -1 if not found
+indexOf() {
+    local VALUE="${1}"
+    shift
+    local ARRAY=($@)
+    local POSITION=-1
 
-CHECK_TARGET_BRANCH_TMP="INPUT_$(echo $TARGET_BRANCH | awk '{print toupper($0)}')"
-CHECK_TARGET_BRANCH=(${!CHECK_TARGET_BRANCH_TMP})
-
-echo -n "Testing $SOURCE_BRANCH -> $TARGET_BRANCH "
-
-if [ -n "${CHECK_TARGET_BRANCH}" ]; then
-    for allowed in "${CHECK_TARGET_BRANCH[@]}"; do
-        if echo "$SOURCE_BRANCH" | grep -qe "$allowed"; then
-            # source branch allowed to merge into target branch
-            echo "✔"
-            exit 0
+    for i in "${!ARRAY[@]}"; do
+        if [[ "${ARRAY[$i]}" = "${VALUE}" ]]; then
+            POSITION=${i};
+            break
         fi
     done
-fi
 
-# additionally branches assigned to INPUT_ALL are allowed to merge into all branches
-if [ -n "${INPUT_ALL}" ]; then
-    INPUT_ALL_ARRAY=(${INPUT_ALL})
-    for allowed in "${INPUT_ALL_ARRAY[@]}"; do
-        if echo "$SOURCE_BRANCH" | grep -qe "$allowed"; then
-            # source branch allowed to merge into all branches
-            echo "✔"
-            exit 0
+    echo ${POSITION}
+}
+
+# checks if source branch is a hotfix and returns success (or failure if not)
+isHotfix() {
+    return $(echo "${SOURCE_BRANCH}" | grep -qe "${HOTFIX_PATTERN}")
+}
+
+# checks if source branch is a feature and returns success (or failure if not)
+isFeature() {
+    return $(echo "${SOURCE_BRANCH}" | grep -qe "${FEATURE_PATTERN}")
+}
+
+# checks if merge is permitted via the defined workflow array
+# workflow array defined that item[n] can only be merged into item[n+1]
+isMergeAllowedInWorkflow() {
+    # features only allowed to merge into start of workflow (n=0)
+    if isFeature; then
+        if [ "${POSITION_TARGET}" -eq "0" ] ; then
+            return 0
         fi
-    done
+        return 1
+    fi
+
+    # if not coming from hotfix or feature, both source and target MUST be defined in workflow branches
+    if [[ "${POSITION_SOURCE}" -eq "-1" || "${POSITION_TARGET}" -eq "-1" ]]; then
+        return 1
+    fi
+
+    # workflow merged only permitted from immediately below steps
+    if [ "${POSITION_TARGET}" -eq "$((POSITION_SOURCE + 1))" ]; then
+        return 0
+    fi
+
+    return 1
+}
+
+isBranchBlocked() {
+    FINAL_WORKFLOW_BRANCH=${WORKFLOW[-1]}
+    AFTER_TARGET_BRANCH=${WORKFLOW[$((POSITION_TARGET + 1))]}
+
+    # The last branch in the workflow cannot be blocked (since there is no other step)
+    if [ "${TARGET_BRANCH}" = "${FINAL_WORKFLOW_BRANCH}" ]; then
+        return 0
+    fi
+
+    # target branch is considered blocked if its current HEAD is ahead of the next branch HEAD
+    # ie the head of the 'target' branch is not an ancester of the 'after target' branch
+    if git merge-base --is-ancestor \
+        $(git rev-parse origin/${TARGET_BRANCH}) \
+        $(git rev-parse origin/${AFTER_TARGET_BRANCH})
+    then
+        return 0
+    fi
+
+    return 1
+}
+
+SOURCE_BRANCH=${GITHUB_HEAD_REF}
+TARGET_BRANCH=${GITHUB_BASE_REF}
+WORKFLOW=(${INPUT_WORKFLOW})
+HOTFIX_PATTERN=${INPUT_HOTFIX_PATTERN}
+FEATURE_PATTERN=${INPPUT_FEATURE_PATTERN}
+
+POSITION_SOURCE=$(indexOf ${SOURCE_BRANCH} "${WORKFLOW[@]}")
+POSITION_TARGET=$(indexOf ${TARGET_BRANCH} "${WORKFLOW[@]}")
+
+# hotfixes can be merged anywhere
+if isHotfix; then
+    echo "::set-output name=response::✔ ${SOURCE_BRANCH} is a hotfix branch"
+    exit 0
 fi
 
-# default case: source branch not permitted to merge to target branch
-echo '✘'
-exit 1
+if ! isMergeAllowedInWorkflow; then
+    echo "::set-output name=response::✘ Workflow does not allow ${SOURCE_BRANCH} to be merged into ${TARGET_BRANCH}"
+    exit 1
+fi
+
+if ! isBranchBlocked; then
+    echo "::set-output name=response::✘ ${TARGET_BRANCH} is currently blocked"
+    exit 1
+fi
+
+echo "::set-output name=response::✔ ${SOURCE_BRANCH} is allowed to merge into ${TARGET_BRANCH}"

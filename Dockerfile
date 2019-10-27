@@ -1,7 +1,9 @@
 FROM alpine:latest
 
-ADD entrypoint.sh /entrypoint.sh
+RUN apk add --no-cache \
+    bash \
+    git
 
-RUN apk add --no-cache bash
+ADD entrypoint.sh /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
