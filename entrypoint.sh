@@ -31,7 +31,8 @@ isHotfix() {
 
 # checks if source branch is a feature and returns success (or failure if not)
 isFeature() {
-    return $(echo "${SOURCE_BRANCH}" | grep -qe "${FEATURE_PATTERN}")
+    TARGET=${1:-$SOURCE_BRANCH}
+    return $(echo "${TARGET}" | grep -qe "${FEATURE_PATTERN}")
 }
 
 # checks if merge is permitted via the defined workflow array
@@ -39,7 +40,7 @@ isFeature() {
 isMergeAllowedInWorkflow() {
     # features only allowed to merge into start of workflow (n=0)
     if isFeature; then
-        if [ "${POSITION_TARGET}" -eq "0" ] ; then
+        if [ "${POSITION_TARGET}" -eq "0" ] || isFeature $TARGET_BRANCH; then
             return 0
         fi
         return 1
