@@ -79,11 +79,11 @@ isBranchBlocked() {
         $(git rev-parse origin/${TARGET_BRANCH}) \
         $(git rev-parse origin/${AFTER_TARGET_BRANCH})
     then
-        echo "--> target branch ahead of next branch in workflow, therefore blocked"
+        echo "--> target branch is not blocked"
         return 0
     fi
 
-    echo "--> Not blocked"
+    echo "--> Branch is blocked"
     return 1
 }
 
