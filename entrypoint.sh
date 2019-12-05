@@ -41,13 +41,16 @@ isMergeAllowedInWorkflow() {
     # features only allowed to merge into start of workflow (n=0)
     if isFeature; then
         if [ "${POSITION_TARGET}" -eq "0" ] || isFeature $TARGET_BRANCH; then
+            echo "--> source is feature branch and target either another feature or start of workflow"
             return 0
         fi
+        echo "--> source is feature, but target is not valid"
         return 1
     fi
 
     # if not coming from hotfix or feature, both source and target MUST be defined in workflow branches
     if [[ "${POSITION_SOURCE}" -eq "-1" || "${POSITION_TARGET}" -eq "-1" ]]; then
+        echo "--> either source or target branch is unknown"
         return 1
     fi
 
@@ -56,6 +59,7 @@ isMergeAllowedInWorkflow() {
         return 0
     fi
 
+    echo "--> Merge not allowed"
     return 1
 }
 
@@ -65,6 +69,7 @@ isBranchBlocked() {
 
     # The last branch in the workflow cannot be blocked (since there is no other step)
     if [ "${TARGET_BRANCH}" = "${FINAL_WORKFLOW_BRANCH}" ]; then
+        echo "--> last step in the workflow. Not blockable"
         return 0
     fi
 
@@ -74,9 +79,11 @@ isBranchBlocked() {
         $(git rev-parse origin/${TARGET_BRANCH}) \
         $(git rev-parse origin/${AFTER_TARGET_BRANCH})
     then
+        echo "--> target branch ahead of next branch in workflow, therefore blocked"
         return 0
     fi
 
+    echo "--> Not blocked"
     return 1
 }
 
