@@ -90,16 +90,19 @@ POSITION_SOURCE=$(indexOf ${SOURCE_BRANCH} "${WORKFLOW[@]}")
 POSITION_TARGET=$(indexOf ${TARGET_BRANCH} "${WORKFLOW[@]}")
 
 # hotfixes can be merged anywhere
+echo "-> checking if hotfix"
 if isHotfix; then
     echo "::set-output name=response::✔ ${SOURCE_BRANCH} is a hotfix branch"
     exit 0
 fi
 
+echo "-> checking if merge is allowed in the workflow rules"
 if ! isMergeAllowedInWorkflow; then
     echo "::set-output name=response::✘ Workflow does not allow ${SOURCE_BRANCH} to be merged into ${TARGET_BRANCH}"
     exit 1
 fi
 
+echo "-> checking if branch is blocked"
 if ! isBranchBlocked; then
     echo "::set-output name=response::✘ ${TARGET_BRANCH} is currently blocked"
     exit 1
