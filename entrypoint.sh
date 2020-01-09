@@ -67,8 +67,8 @@ isBranchBlocked() {
     FINAL_WORKFLOW_BRANCH=${WORKFLOW[-1]}
     AFTER_TARGET_BRANCH=${WORKFLOW[$((POSITION_TARGET + 1))]}
 
-    echo ":radioactive_symbol: ------> Final Workflow Branch: ${FINAL_WORKFLOW_BRANCH}"
-    echo ":radioactive_symbol: ------> After Target Branch: ${AFTER_TARGET_BRANCH}"
+    echo "👺 ------> Final Workflow Branch: ${FINAL_WORKFLOW_BRANCH}"
+    echo "👺 ------> After Target Branch: ${AFTER_TARGET_BRANCH}"
 
     # The last branch in the workflow cannot be blocked (since there is no other step)
     if [ "${TARGET_BRANCH}" = "${FINAL_WORKFLOW_BRANCH}" ]; then
@@ -99,8 +99,8 @@ FEATURE_PATTERN=${INPPUT_FEATURE_PATTERN}
 POSITION_SOURCE=$(indexOf ${SOURCE_BRANCH} "${WORKFLOW[@]}")
 POSITION_TARGET=$(indexOf ${TARGET_BRANCH} "${WORKFLOW[@]}")
 
-echo ":radioactive_symbol: ------> Position Source: ${POSITION_SOURCE}"
-echo ":radioactive_symbol: ------> Position Target: ${POSITION_TARGET}"
+echo "👺 ------> Position Source: ${POSITION_SOURCE}"
+echo "👺 ------> Position Target: ${POSITION_TARGET}"
 
 # hotfixes can be merged anywhere
 echo "-> checking if hotfix"
