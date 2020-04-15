@@ -77,7 +77,8 @@ isBranchBlocked() {
     # ie the head of the 'target' branch is not an ancester of the 'after target' branch
     if git merge-base --is-ancestor \
         $(git rev-parse origin/${TARGET_BRANCH}) \
-        $(git rev-parse origin/${AFTER_TARGET_BRANCH}); then
+        $(git rev-parse origin/${AFTER_TARGET_BRANCH})
+    then
         echo "--> target branch is not blocked"
         return 0
     fi
