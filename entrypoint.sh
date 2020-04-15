@@ -83,7 +83,7 @@ isBranchBlocked() {
     #     return 0
     # fi
 
-    echo "--> Branch is blocked"
+    echo "--> Branch ${TARGET_BRANCH} is blocked, "
     return 1
 }
 
@@ -91,7 +91,7 @@ SOURCE_BRANCH=${GITHUB_HEAD_REF}
 TARGET_BRANCH=${GITHUB_BASE_REF}
 WORKFLOW=(${INPUT_WORKFLOW})
 HOTFIX_PATTERN=${INPUT_HOTFIX_PATTERN}
-FEATURE_PATTERN=${INPPUT_FEATURE_PATTERN}
+FEATURE_PATTERN=${INPUT_FEATURE_PATTERN}
 
 POSITION_SOURCE=$(indexOf ${SOURCE_BRANCH} "${WORKFLOW[@]}")
 POSITION_TARGET=$(indexOf ${TARGET_BRANCH} "${WORKFLOW[@]}")
