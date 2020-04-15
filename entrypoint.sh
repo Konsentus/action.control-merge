@@ -16,7 +16,7 @@ indexOf() {
 
     for i in "${!ARRAY[@]}"; do
         if [[ "${ARRAY[$i]}" = "${VALUE}" ]]; then
-            POSITION=${i};
+            POSITION=${i}
             break
         fi
     done
@@ -84,6 +84,11 @@ isBranchBlocked() {
     fi
 
     echo "--> Branch is blocked"
+
+    TARGET_BRANCH_LAST_COMMIT_HASH=$(git rev-parse origin/${TARGET_BRANCH})
+    COMMITTER=$(git show -s --format='%an' ${TARGET_BRANCH_LAST_COMMIT_HASH})
+
+    echo "✘ Branch ${TARGET_BRANCH} is awaiting merge into ${AFTER_TARGET_BRANCH}, please check with ${COMMITTER}"
     return 1
 }
 
@@ -91,7 +96,7 @@ SOURCE_BRANCH=${GITHUB_HEAD_REF}
 TARGET_BRANCH=${GITHUB_BASE_REF}
 WORKFLOW=(${INPUT_WORKFLOW})
 HOTFIX_PATTERN=${INPUT_HOTFIX_PATTERN}
-FEATURE_PATTERN=${INPPUT_FEATURE_PATTERN}
+FEATURE_PATTERN=${INPUT_FEATURE_PATTERN}
 
 POSITION_SOURCE=$(indexOf ${SOURCE_BRANCH} "${WORKFLOW[@]}")
 POSITION_TARGET=$(indexOf ${TARGET_BRANCH} "${WORKFLOW[@]}")
