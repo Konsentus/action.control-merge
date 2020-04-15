@@ -16,7 +16,7 @@ indexOf() {
 
     for i in "${!ARRAY[@]}"; do
         if [[ "${ARRAY[$i]}" = "${VALUE}" ]]; then
-            POSITION=${i};
+            POSITION=${i}
             break
         fi
     done
@@ -83,7 +83,12 @@ isBranchBlocked() {
     #     return 0
     # fi
 
-    echo "--> Branch ${TARGET_BRANCH} is blocked, "
+    echo "--> Branch is blocked"
+
+    TARGET_BRANCH_LAST_COMMIT_HASH=$(git rev-parse origin/${TARGET_BRANCH})
+    COMMITTER=$(git show -s --format='%an' ${TARGET_BRANCH_LAST_COMMIT_HASH})
+
+    echo "✘ Branch ${TARGET_BRANCH} is awaiting merge into ${AFTER_TARGET_BRANCH}, please check with ${COMMITTER}"
     return 1
 }
 
