@@ -1,5 +1,8 @@
 #!/bin/bash -l
 
+# Since Git v2.35.2 current working directory should be set as safe explicitly (fix for CVE-2022-24765)
+git config --global --add safe.directory ${PWD}
+
 if [ -z "${GITHUB_HEAD_REF}" ] || [ -z "${GITHUB_BASE_REF}" ]; then
     # expected env vars dont exist, cannot continue
     echo "::set-output name=response::✘ Either GITHUB_HEAD_REF or GITHUB_BASE_REF are not defined. Cannot continue"
