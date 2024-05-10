@@ -29,13 +29,13 @@ indexOf() {
 
 # checks if source branch is a hotfix and returns success (or failure if not)
 isHotfix() {
-    return $(echo "${SOURCE_BRANCH}" | grep -qP "${HOTFIX_PATTERN}")
+    return $(echo "${SOURCE_BRANCH}" | grep -qE "${HOTFIX_PATTERN}")
 }
 
 # checks if source branch is a feature and returns success (or failure if not)
 isFeature() {
     TARGET=${1:-$SOURCE_BRANCH}
-    return $(echo "${TARGET}" | grep -qP "${FEATURE_PATTERN}")
+    return $(echo "${TARGET}" | grep -qE "${FEATURE_PATTERN}")
 }
 
 # checks if merge is permitted via the defined workflow array
